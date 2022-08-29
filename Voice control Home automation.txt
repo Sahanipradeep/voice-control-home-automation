@@ -1,0 +1,116 @@
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(7,8,9,10,11,12);//rs,en,data pins d4 -d7
+
+#include <SoftwareSerial.h>
+SoftwareSerial myserial(3, 4); // RX, TX
+
+int led1 = 6; //Connect LED 1 To Pin #2 
+int led2 = 5; //Connect LED 2 To Pin #3 
+int led3 = 2; //Connect LED 3 To Pin #6 
+int led4 = A3; //Connect LED4 To Pin #1 
+const int buzz=A4;      // the number of the LED pin
+
+
+
+String voice;
+char c;
+int val;
+float TEMP;
+unsigned int SMOKE;
+
+void setup() 
+{
+lcd.begin(16,2);
+pinMode(buzz, OUTPUT);  
+pinMode(led1, OUTPUT); 
+pinMode(led2, OUTPUT); 
+pinMode(led3, OUTPUT); 
+pinMode(led4, OUTPUT);
+myserial.begin(9600);
+Serial.begin(9600);
+myserial.println("voice based home automation using bt");
+lcd.setCursor(0,0);
+lcd.print("VOICE BASED HOME");
+lcd.setCursor(0,1);
+lcd.print("AUTOMATION B.T");
+delay (3000);
+lcd.clear();
+
+}
+
+void allon(){digitalWrite(led1, HIGH);delay (300);digitalWrite(led2, HIGH);delay (300);
+digitalWrite(led3, HIGH);delay (300); digitalWrite(led4, HIGH);delay (300);}
+
+void alloff(){digitalWrite(led1, LOW);delay (300);digitalWrite(led2, LOW);delay (300);
+digitalWrite(led3, LOW);delay (300);digitalWrite(led4, LOW);delay (300);}
+ 
+void loop() 
+{
+val = analogRead(0);float T=( val/1024.0)*5000;float TEMP= T/10;
+SMOKE = analogRead(1);
+lcd.setCursor(0,0);lcd.print("T:");lcd.setCursor(3,0);lcd.print(TEMP);delay (50);
+lcd.setCursor(0,1);lcd.print("S: ");lcd.setCursor(3,1);lcd.print(SMOKE);delay (50);
+if (TEMP>60)
+{
+digitalWrite(buzz, HIGH);
+myserial.println("OVER TEMPERATRE");
+myserial.print("TEMP:");
+myserial.print(TEMP);
+myserial.println("deg");
+delay (10);
+}
+
+if (TEMP<60)
+{digitalWrite(buzz, LOW);}
+
+if (SMOKE>750)
+{
+digitalWrite(buzz, HIGH);
+myserial.println("SMOKE ALERT");
+myserial.print("SMOKE:");
+myserial.print(SMOKE);
+myserial.println(" ");
+delay (10);
+}
+
+if (SMOKE<750)
+{digitalWrite(buzz, LOW);}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+while (myserial.available()){  //Check if there is an available byte to read
+delay(10); //Delay added to make thing stable 
+char c = myserial.read(); //Conduct a serial read
+if (c == '\n') {break;} //Exit the loop when the # is detected after the word
+voice += c; //Shorthand for voice = voice + c
+}  
+if (voice.length() > 0) {
+Serial.println(voice); 
+//-----------------------------------------------------------------------//    
+//----------Control Multiple Pins/ LEDs----------//  
+if(voice == "all on"){lcd.clear();lcd.setCursor(0,0);lcd.print("all on");allon();myserial.println("all on");delay (3000);lcd.clear();}  //Turn on All Pins (Call Function)
+else if(voice == "all of"){lcd.clear();lcd.setCursor(0,0);lcd.print("all off");alloff();myserial.println("all off");delay (3000);lcd.clear();} //Turn off  All Pins (Call Function)
+else if(voice == "all off"){lcd.clear();lcd.setCursor(0,0);lcd.print("all off");alloff();myserial.println("all off");delay (3000);lcd.clear();} //Turn off  All Pins (Call Function)
+
+//----------Turn On One-By-One----------// 
+else if(voice == "light on"){lcd.clear();lcd.setCursor(0,0);lcd.print("light on");digitalWrite(led1, HIGH);myserial.println("light on");delay (3000);lcd.clear();} 
+else if(voice == "bulb on"){lcd.clear();lcd.setCursor(0,0);lcd.print("bulb on");digitalWrite(led3, HIGH);myserial.println("bulb on");delay (3000);lcd.clear();}
+else if(voice == "LED on"){lcd.clear();lcd.setCursor(0,0);lcd.print("LED ON");digitalWrite(led4, HIGH);myserial.println("LED on");delay (3000);lcd.clear();}
+else if(voice == "fan on"){lcd.clear();lcd.setCursor(0,0);lcd.print("fan on");digitalWrite(led2, HIGH);myserial.println("fan on");delay (3000);lcd.clear();}
+else if(voice == "DC on"){lcd.clear();lcd.setCursor(0,0);lcd.print("DC MOTOR/FAN ON");digitalWrite(led2, HIGH);myserial.println("DCMOTOR on");delay (3000);lcd.clear();}
+else if(voice == "AC on"){lcd.clear();lcd.setCursor(0,0);lcd.print("AC on");digitalWrite(led2, HIGH);myserial.println("AC on");delay (3000);lcd.clear();}
+//----------Turn Off One-By-One----------// 
+else if(voice == "light of"){lcd.clear();lcd.setCursor(0,0);lcd.print("light off");digitalWrite(led1, LOW);myserial.println("light off");delay (3000);lcd.clear();} 
+else if(voice == "bulb off"){lcd.clear();lcd.setCursor(0,0);lcd.print("bulb of");digitalWrite(led3, LOW);myserial.println("bulb oF");delay (3000);lcd.clear();}
+else if(voice == "LED of"){lcd.clear();lcd.setCursor(0,0);lcd.print("LED OFF");digitalWrite(led4, LOW);myserial.println("LED OFF");delay (3000);lcd.clear();}
+else if(voice == "fan off"){lcd.clear();lcd.setCursor(0,0);lcd.print("fan off");digitalWrite(led2, LOW);myserial.println("fan of");delay (3000);lcd.clear();}
+else if(voice == "DC off"){lcd.clear();lcd.setCursor(0,0);lcd.print("DC MOTOR/FAN OFF");digitalWrite(led2, LOW);myserial.println("DCMOTOR OFF");delay (3000);lcd.clear();}
+else if(voice == "AC of"){lcd.clear();lcd.setCursor(0,0);lcd.print("AC oFF");digitalWrite(led2, LOW);myserial.println("AC OFF");delay (3000);lcd.clear();}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+else if(voice == "light off"){lcd.clear();lcd.setCursor(0,0);lcd.print("light off");digitalWrite(led1, LOW);myserial.println("light off");delay (3000);lcd.clear();} 
+else if(voice == "bulb of"){lcd.clear();lcd.setCursor(0,0);lcd.print("bulb of");digitalWrite(led3, LOW);myserial.println("bulb oF");delay (3000);lcd.clear();}
+else if(voice == "LED off"){lcd.clear();lcd.setCursor(0,0);lcd.print("LED OFF");digitalWrite(led4, LOW);myserial.println("LED OFF");delay (3000);lcd.clear();}
+else if(voice == "fan of"){lcd.clear();lcd.setCursor(0,0);lcd.print("fan off");digitalWrite(led2, LOW);myserial.println("fan of");delay (3000);lcd.clear();}
+else if(voice == "DC of"){lcd.clear();lcd.setCursor(0,0);lcd.print("DC MOTOR/FAN OFF");digitalWrite(led2, LOW);myserial.println("DCMOTOR OFF");delay (3000);lcd.clear();}
+else if(voice == "AC off"){lcd.clear();lcd.setCursor(0,0);lcd.print("AC oFF");digitalWrite(led2, LOW);myserial.println("AC OFF");delay (3000);lcd.clear();}
+//-----------------------------------------------------------------------//  
+voice="";}} //Reset the variable after initiating
